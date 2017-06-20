@@ -87,8 +87,8 @@ with open(outFile, 'w') as f:
 
 # testing
 feature="chr6:25794574-25800384"
-clusters="/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/iCLIP/All_TDP_iCLIP_merged.bed"
-bed="/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/F210I_embryonic_brain_notsig_se_intron_all.bed"
+clusters=BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/iCLIP/All_TDP_iCLIP_merged.bed")
+introns=BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/F210I_embryonic_brain_notsig_se_intron_all.bed")
 
 
 
