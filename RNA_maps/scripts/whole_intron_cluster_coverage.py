@@ -7,29 +7,32 @@ parser = argparse.ArgumentParser()
 parser.add_argument("intronBed", help = "A bed file of introns that each include an exon")
 parser.add_argument("clusterBed", help = "A bed file of iCLIP clusters")
 parser.add_argument("outFile", help = "The output file")
+parser.add_argument("flank", help = "number of nucleotides to flank introns by", default = 100)
+parser.add_argument("--stranded", action = 'store_true', default = False, required = False)
 args = parser.parse_args()
 
 print( "Intron bed file is %s" % args.intronBed)
 print( "Cluster bed file is %s" % args.clusterBed)
 print( "output file is %s" % args.outFile)
-
+print( "flank is %s" % args.flank)
+print("stranded is %s" % args.stranded )
 
 # introns = BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/F210I_embryonic_brain_se_intron_included.bed")
 # clusters = BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/iCLIP/All_TDP_iCLIP_merged.bed")
 # outFile="/Users/Jack/Documents/Misc/intron_coverage.csv"
 
 outFile = args.outFile
+flank = int(args.flank)
 introns = BedTool(args.intronBed)
 clusters = BedTool(args.clusterBed)
+stranded = args.stranded
 
-
-flank = 100
 
 # first flank the introns by 100nt either side
 
 def flank_introns(feature):
-	feature.start = feature.start - flank
-	feature.end = feature.end + flank
+	feature.start = feature.start - int(flank)
+	feature.end = feature.end + int(flank)
 	return(feature)
 
 if not os.path.exists(os.path.dirname(outFile)):
@@ -43,7 +46,9 @@ flanked = introns.each(flank_introns)
 
 # intersect the flanked introns with the iCLIP clusters
 #intersect = introns.intersect(clusters, s=True,wa=True, wb = True)
-intersect = flanked.intersect(clusters, s=True,wa=True, wb = True)
+intersect = flanked.intersect(clusters, s=stranded,wa=True, wb = True)
+
+#print type(intersect)
 
 # store as dictionary
 intervals = dict()
@@ -76,6 +81,8 @@ for feature in intervals:
 	#vector.append("\n")
 	output_list.append(vector)
 
+#print output_list[0][0:99]
+
 # write out the intervals to a comma separated file
 print( "Writing to %s" % outFile)
 
@@ -86,9 +93,9 @@ with open(outFile, 'w') as f:
 
 
 # testing
-feature="chr6:25794574-25800384"
-clusters=BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/iCLIP/All_TDP_iCLIP_merged.bed")
-introns=BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/F210I_embryonic_brain_notsig_se_intron_all.bed")
+# feature="chr6:25794574-25800384"
+# clusters=BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/iCLIP/All_TDP_iCLIP_merged.bed")
+# introns=BedTool("/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data/F210I_embryonic_brain_notsig_se_intron_all.bed")
 
 
 

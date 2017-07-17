@@ -249,24 +249,44 @@ get_exon_number <- function(exons_bed){
   return(num_exons)
 }
 
+
+
 # create numeric coverage vectors
- coverage_file <- "/Users/Jack/Google Drive/TDP_paper/RNA_maps/results/F210I_included_100_coverage.csv"
- exons_bed <- "/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data//noheader/F210I_embryonic_brain_se_intron_included.bed"
- test <- create_coverage( coverage_file, exons_bed)
-# 
+#  coverage_file <- "/Users/Jack/Google Drive/TDP_paper/RNA_maps/results/F210I_included_100_coverage.csv"
+#  exons_bed <- "/Users/Jack/SAN/IoN_RNAseq/RNA_Maps/data//noheader/F210I_embryonic_brain_se_intron_included.bed"
+#  test <- create_coverage( coverage_file, exons_bed)
+# # 
 
 
 # run each set through
 cov_list <- list()
-cov_list[[1]] <- create_coverage(included,included_exons)
-cov_list[[2]] <- create_coverage(skipped,skipped_exons)
-cov_list[[3]] <- create_coverage(control,control_exons)
-
-# get exon numbers for plot
 exon_num_list <- list()
-exon_num_list[[1]] <- get_exon_number(included_exons)
-exon_num_list[[2]] <- get_exon_number(skipped_exons)
-exon_num_list[[3]] <- get_exon_number(control_exons)
+
+if( !is.null(included) & !is.null(included_exons) ){
+  cov_list[[1]] <- create_coverage(included,included_exons)
+  exon_num_list[[1]] <- get_exon_number(included_exons)
+}else{
+  cov_list[[1]] <- NULL
+  exon_num_list[[1]] <- 0
+}
+
+if( !is.null(skipped) & !is.null(skipped_exons) ){
+  cov_list[[2]] <- create_coverage(skipped,skipped_exons)
+  exon_num_list[[2]] <- get_exon_number(skipped_exons)
+}else{
+  cov_list[[2]] <- NULL
+  exon_num_list[[2]] <- 0
+}
+
+if( !is.null(control) & !is.null(control_exons) ){
+  cov_list[[3]] <- create_coverage(control,control_exons)
+  exon_num_list[[3]] <- get_exon_number(control_exons)
+}else{
+  cov_list[[3]] <- NULL
+  exon_num_list[[3]] <- 0
+}
+
+
 
 
 results <- paste0(outFolder,"/coverage_data.Rdata")
@@ -275,14 +295,14 @@ save.image(results)
 
 # quit()
 # 
-load("/Users/Jack/Google Drive/TDP_paper/RNA_maps/results/coverage_data.Rdata")
+#load("/Users/Jack/Google Drive/TDP_paper/RNA_maps/results/coverage_data.Rdata")
 # 
 
 # plotting
 my_ymax <- max(unlist(lapply(cov_list, max)))
 
 # hardcode ymax
-my_ymax <- 0.2
+#my_ymax <- 0.2
 
 x_breaks <- c( 1+(exon_length/2), 
                1+exon_length,
@@ -300,10 +320,12 @@ x_breaks <- c( 1+(exon_length/2),
 )
 
 
-x_labels <- c("downstream\nexon", "",flank, -flank, "", -exon_flank,"central\nexon",exon_flank,  "", flank, -flank, "", "upstream\nexon" )
+x_labels <- c("upstream\nexon", "",flank, -flank, "", -exon_flank,"central\nexon",exon_flank,  "", flank, -flank, "", "downstream\nexon" )
 total_length <- exon_length + flank + intron_length + flank + exon_length + flank + intron_length + flank + exon_length 
 centre_point <- 1+exon_length+flank+intron_length+flank+(exon_length/2)
 # draw box on plot to represent exon
+
+mySubTitle <- paste0( "Included exons: ", exon_num_list[[1]], "; Skipped exons: ", exon_num_list[[2]], "; Control exons: ", exon_num_list[[3]] ) 
 
 exon_df <- data.frame(
   x = c( 
@@ -344,16 +366,28 @@ skipped_df <- data.frame(
   xend = x_breaks[12]
 )
 
-p <- ggplot() + theme_classic() +
+p <- ggplot() + theme_classic()
   # included exons
-  geom_area( aes(1:length(cov_list[[1]]), cov_list[[1]] ), color = NA, fill = "red", alpha = 0.9) + 
-  # control exons
-  geom_area( aes(1:length(cov_list[[3]]), cov_list[[3]] ), color = NA, fill = "gray", alpha = 0.75 ) +
-  # skipped exons
-  geom_area( aes(1:length(cov_list[[2]]), -1*cov_list[[2]] ), color = NA, fill = "blue", alpha = 0.9) + 
-  # control exons
-  geom_area( aes(1:length(cov_list[[3]]), -1*cov_list[[3]] ), color = NA, fill = "gray", alpha = 0.75 ) +
+  if( !is.null(cov_list[[1]])){
+    p <- p + geom_area( aes(1:length(cov_list[[1]]), cov_list[[1]] ), color = NA, fill = "red", alpha = 0.9) 
+  }
   
+  # skipped exons
+  if( !is.null( cov_list[[2]])){
+    p <- p + geom_area( aes(1:length(cov_list[[2]]), -1*cov_list[[2]] ), color = NA, fill = "blue", alpha = 0.9)
+  }
+
+  # control exons
+  if( !is.null(cov_list[[3]]) & !is.null( cov_list[[1]]) ){
+    p <- p + geom_area( aes(1:length(cov_list[[3]]), cov_list[[3]] ), color = NA, fill = "gray", alpha = 0.75 )
+  }
+  
+  # control exons
+  if( !is.null(cov_list[[3]]) & !is.null( cov_list[[2]] ) ){
+    p <- p + geom_area( aes(1:length(cov_list[[3]]), -1*cov_list[[3]] ), color = NA, fill = "gray", alpha = 0.75 )
+  }
+
+  p <- p +
   scale_x_continuous(
     "",
     breaks = x_breaks,
@@ -368,7 +402,7 @@ p <- ggplot() + theme_classic() +
     expand = c(0, 0)
   ) +
   labs(title = paste0(code, " iCLIP cluster RNA map"), 
-                      subtitle = paste0( "Included exons: ", exon_num_list[[1]], "; Skipped exons: ", exon_num_list[[2]], "; Control exons: ", exon_num_list[[3]] ) ) +
+                      subtitle = mySubTitle ) +
   # annotate("text", y = my_ymax, x = (exon_length/2) - (exon_length/10),  label = paste0("Included exons: ", exon_num_list[[1]]), colour = "red" ) +
   # annotate("text", y = my_ymax - (1/6*my_ymax), x = (exon_length/2) - (exon_length/10),  label = paste0("Skipped exons: ", exon_num_list[[2]]), colour = "blue" ) +
   # annotate("text", y = my_ymax - (2/6*my_ymax), x = (exon_length/2) - (exon_length/10),  label = paste0("Control exons: ", exon_num_list[[3]]), colour = "black" ) +
