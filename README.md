@@ -16,10 +16,31 @@ d) RNA_maps/scripts/plot_whole_intron_coverage.R
 -  RNA_maps/scripts/whole_intron_cluster_coverage.py	
 
 # Figure 6
-k) NMD_prediction/bring_everything_together.R
-l) NMD_prediction/
+i),j) see 5 d) 
+k) differential_expression/skiptic_cryptic_expression.R 
+l) NMD_prediction/NMD_prediction.R
+- NMD_prediction/bring_everything_together.R
 m) conservation/conservation.R 
 - conservation/prepare_conservation_results.R
 
 
-Supplementary Figures
+# Supplementary Figures
+
+### dependencies:
+bedtools v2.24.0
+R 3.3.2
+- dplyr
+- ggplot2
+- stringr
+- biostrings
+- data.table
+- SGSeq
+- DESeq2
+- DEXSeq
+- optparse
+python 2.7.10
+- pybedtools
+- argparse
+
+
+
