@@ -92,10 +92,12 @@ mergeAllData <- function( exon_list, annotation, deseqRes, cryptic_list, NMD_lis
   # merge deseq
   if(code == "M323K"){
     d$geneLog2FC <- deseq$log2FoldChange[ match( d$geneName, deseq$external_gene_id)]
-    d$genePvalue <- deseq$pvalue[ match( d$geneName, deseq$external_gene_id)]
+    # take adjusted P
+    d$genePvalue <- deseq$padj[ match( d$geneName, deseq$external_gene_id)]
   }else{
     d$geneLog2FC <- deseq$log2FoldChange[ match( d$geneName, deseq$EnsemblID)]
-    d$genePvalue <- deseq$pvalue[ match( d$geneName, deseq$EnsemblID)]
+    # adjusted P
+    d$genePvalue <- deseq$padj[ match( d$geneName, deseq$EnsemblID)]
   }
   # merge NMD
   d$NMD.prediction <- NMD_list$verdict[ match(
@@ -191,10 +193,14 @@ gridPlots <- function(mergedData, title, outFile){
 
 makeBarPlots <- function( mergedData, drop = NULL,colourBy, fillLabel, title){
   #print(colourBy)
-  control <- filter(mergedData, genePvalue > 0.1)
+  control <- filter(mergedData, genePvalue > 0.1 | is.na(genePvalue))
   up <- filter( mergedData, geneLog2FC > 0 & genePvalue < 0.1 & colourBy != "exon evades classification" )
   down <- filter( mergedData, geneLog2FC < 0 & genePvalue < 0.1 & colourBy != "exon evades classification" )
   control_group <- group_by_(control, colourBy)
+  print(nrow(mergedData))
+  print(nrow(up))
+  print(nrow(down))
+  print(nrow(control_group))
   up_group <- group_by_(up, colourBy)
   down_group <- group_by_(down, colourBy)
   
@@ -203,6 +209,7 @@ makeBarPlots <- function( mergedData, drop = NULL,colourBy, fillLabel, title){
   down_sum <- summarise(down_group, count = n() / nrow(down) ) %>% mutate( direction = paste0("Downregulated\n(",nrow(down), ")" ) )
 
   toPlot <- rbind(control_sum,up_sum,down_sum)
+  print(toPlot)
   if(!is.null(drop)){
     toPlot <- rbind(control_sum, down_sum)
   }
@@ -223,6 +230,7 @@ makeBarPlots <- function( mergedData, drop = NULL,colourBy, fillLabel, title){
     scale_fill_discrete(fillLabel) + 
     xlab("Gene direction") + 
     ggtitle(title) +
+    theme_bw() +
     scale_x_discrete( limits = x_limits
       ) +
     scale_y_continuous("Proportion",labels=scales::percent) +
@@ -231,40 +239,40 @@ makeBarPlots <- function( mergedData, drop = NULL,colourBy, fillLabel, title){
 }
 
 p1 <- makeBarPlots(included[ included$is.extreme, ],
-             "NMD_prediction_simplified", 
-             fillLabel = "Functional\nprediction",
+             colourBy = "NMD_prediction_simplified", 
+             fillLabel = "Functional\nprediction\n(exon)",
              drop = NULL,
              title = paste0("RRM2mut cryptic exons"))
 p2 <- makeBarPlots(skipped[ skipped$is.extreme,],
-             "NMD_prediction_simplified",
-             fillLabel = "Functional\nprediction",
+             colourBy = "NMD_prediction_simplified",
+             fillLabel = "Functional\nprediction\n(exon)",
              drop = "Upregulated",
              title = "LCDmut skiptic exons")
 p3 <- makeBarPlots(included,
-                   "NMD_prediction_simplified", 
-                   fillLabel = "Prediction",
+                   colourBy = "NMD_prediction_simplified", 
+                   fillLabel = "Functional\nprediction\n(exon)",
                    title = paste0("RRM2mut all included exons"))
 p4 <- makeBarPlots(skipped,
-                   "NMD_prediction_simplified",
+                   colourBy = "NMD_prediction_simplified",
                    fillLabel = "Prediction",
                    title = "LCDmut all skipped exons")
 
-pdf("google_drive/TDP_paper/NMD_prediction/NMD_prediction_bar_plots.pdf")
+pdf("/Users/Jack/google_drive/TDP_paper/NMD_prediction/NMD_prediction_bar_plots.pdf")
 grid.arrange(p1,p2,p3,p4)
 dev.off()
 #makeBarPlots(included, "NMD.prediction")
 #makeBarPlots(included, "annotation")
 
-gridPlots( included, "M323K included exons", 
-           outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/M323K_included_exons_expression_scatters.pdf") 
-
-gridPlots( skipped, "M323K skipped exons",
-           outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/M323K_skipped_exons_expression_scatters.pdf")
-
-gridPlots( included, "F210I included exons", 
-           outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/F210I_included_exons_expression_scatters.pdf") 
-  
-gridPlots( skipped, "F210I skipped exons",
-           outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/F210I_skipped_exons_expression_scatters.pdf")
-
+# gridPlots( included, "M323K included exons", 
+#            outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/M323K_included_exons_expression_scatters.pdf") 
+# 
+# gridPlots( skipped, "M323K skipped exons",
+#            outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/M323K_skipped_exons_expression_scatters.pdf")
+# 
+# gridPlots( included, "F210I included exons", 
+#            outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/F210I_included_exons_expression_scatters.pdf") 
+#   
+# gridPlots( skipped, "F210I skipped exons",
+#            outFile = "/Users/Jack/google_drive/TDP_paper/NMD_prediction/F210I_skipped_exons_expression_scatters.pdf")
+# 
 

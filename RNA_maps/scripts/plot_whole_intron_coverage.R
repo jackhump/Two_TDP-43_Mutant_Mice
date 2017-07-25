@@ -289,9 +289,9 @@ if( !is.null(control) & !is.null(control_exons) ){
 
 
 
-results <- paste0(outFolder,"/coverage_data.Rdata")
+#results <- paste0(outFolder,"/coverage_data.Rdata")
 
-save.image(results)
+#save.image(results)
 
 # quit()
 # 

@@ -156,22 +156,34 @@ combineAllPlot <- function(annotated, spliced, cryptic, genotypeCode, exon_codes
   binomResults <- apply(results, MAR = 1, FUN = function(y){ binom.test(x = as.numeric( y[2] ), n = as.numeric( y[3] ) ) }$conf.int)
   results$confA <- binomResults[1,]
   results$confB <- binomResults[2,]
-  
   tests <- NULL
-  pvalues <- rep(NA,5)
+  pvalues <- rep(NA,6)
+  # hypergeometric test 
+  # for( i in c(1,4) ){
+  #   # sample doesn't change
+  #   hitInSample <- results[i+2, 2]
+  #   sampleSize <- results[i+2,3]
+  #   # population does
+  #   for( j in c(0,1) ){
+  #     hitInPop <- results[i+j, 2]
+  #     failInPop <- results[i+j, 3] - results[i+j,2]  
+  #     pval <- phyper(q = hitInSample-1, m = hitInPop, n = failInPop, k = sampleSize, lower.tail= FALSE)
+  #     pvalues[i+j] <- pval
+  #   }
+  # }
+  # binomial proportion test
   for( i in c(1,4) ){
-    # sample doesn't change
-    hitInSample <- results[i+2, 2]
-    sampleSize <- results[i+2,3]
-    # population does
-    for( j in c(0,1) ){
-      hitInPop <- results[i+j, 2]
-      failInPop <- results[i+j, 3] - results[i+j,2]  
-      pval <- phyper(q = hitInSample-1, m = hitInPop, n = failInPop, k = sampleSize, lower.tail= FALSE)
+    hitInPop <- results[i,"proportion"]
+    popSize <- results[i, "n"]
+    for( j in c(1,2)){
+      hitInSample <- results[i+j, "proportion"]
+      sampleSize <- results[i+j, "n"]
+      pval <- prop.test( x = c(hitInPop,hitInSample), n = c(popSize, sampleSize), correct = TRUE)$p.value
       pvalues[i+j] <- pval
-      print(pval)
     }
   }
+  results$p.value <- pvalues
+  print(pvalues)
   pvalues <- ifelse(
     pvalues > 0.05, "ns",
     ifelse(
@@ -181,6 +193,7 @@ combineAllPlot <- function(annotated, spliced, cryptic, genotypeCode, exon_codes
       )
     )
   )
+  results$sig.code <- pvalues
   names(pvalues) <- tests
   print(pvalues)
   print(results)
@@ -189,13 +202,13 @@ combineAllPlot <- function(annotated, spliced, cryptic, genotypeCode, exon_codes
     aes( 
       x = str_split_fixed(group, "\t", 2)[,2],
       y = proportion/n, fill = str_split_fixed(group, "\t", 2)[,1] ) 
-  ) +
+    ) +
     geom_col( position=position_dodge() ) +
     geom_errorbar( aes( ymin = confA, ymax = confB ), width = 0.2,position=position_dodge(.9) ) + 
     scale_y_continuous(labels=scales::percent, limits = c(0,0.5)) +
     ylab("Proportion significant at FDR < 10%") +
     scale_x_discrete(name = "", labels = c("downregulated", "upregulated") ) +
-    scale_fill_discrete(name = "Splicing status",
+    scale_fill_discrete(name = "Splicing status\n(gene)",
                         #values = exon_codes,
                         labels = c(
                           paste0(exon_codes[1],"\n(", nrow(annotated), ")" ),
@@ -204,14 +217,14 @@ combineAllPlot <- function(annotated, spliced, cryptic, genotypeCode, exon_codes
     ) +
     ggtitle(genotypeCode) +
     # p values
-    annotate("text",x = 2, y = 0.5, label = pvalues[1]) +
-    annotate("text",x = 2.15, y = 0.46, label = pvalues[2]) +
-    annotate("text", x = 1, y = 0.5, label = pvalues[4]) +
-    annotate("text", x = 1.15, y = 0.46, label = pvalues[5]) +
+    annotate("text",x = 1.85, y = 0.46, label = pvalues[2]) +
+    annotate("text",x = 2, y = 0.5, label = pvalues[3]) +
+    annotate("text", x = 0.85, y = 0.46, label = pvalues[5]) +
+    annotate("text", x = 1, y = 0.5, label = pvalues[6]) +
     annotate("segment", x = 0.7, xend = 1.3, y = 0.48, yend = 0.48 ) + 
     annotate("segment", x = 1.7, xend = 2.3, y = 0.48, yend = 0.48 ) + 
-    annotate("segment", x = 1, xend = 1.3, y = 0.44, yend = 0.44 ) +
-    annotate("segment", x = 2, xend = 2.3, y = 0.44, yend = 0.44 ) +
+    annotate("segment", x = 0.7, xend = 1, y = 0.44, yend = 0.44 ) +
+    annotate("segment", x = 1.7, xend = 2, y = 0.44, yend = 0.44 ) +
     theme_bw()
   
   return(p)
