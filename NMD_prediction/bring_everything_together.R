@@ -223,7 +223,7 @@ makeBarPlots <- function( mergedData, drop = NULL,colourBy, fillLabel, title){
     )
   }
   
-
+  print(toPlot)
   toPlot$dataset <- title
   p <- ggplot( toPlot, aes_string(x = "direction", y = "count", fill = colourBy ) ) +
     geom_col() +

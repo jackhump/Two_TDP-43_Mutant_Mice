@@ -1,6 +1,6 @@
 #Make pie chart of the event types in the new datasets 
 
-library(SGSeq) 
+#library(SGSeq) 
 library(dplyr) 
 library(ggplot2) 
 library(data.table)
@@ -26,7 +26,7 @@ m323k.res.clean <- res.clean
 #m323k.res.clean <- read.table(m323k.res,header=TRUE)
 
 makePieChart <- function(sgseqRes, title, FDRlimit, outFolder){
-# filter by FDR < 0.05
+# filter by FDR < 0.01!
 res.sig <- dplyr::filter(sgseqRes, FDR < FDRlimit) %>% select(one_of(c("groupID", "variantType", "FDR")) ) 
 # for each groupID take one event
 res.sig.by.group <- res.sig %>% group_by(groupID) %>% do(head(.,1))  
@@ -71,8 +71,8 @@ ggsave(paste0(outFolder,"/", title, "_sgseq_pie_chart.pdf") )
 write.table( res.events.plot, paste0(outFolder, "/", title, "_sgseq_variant_type_table.tab"), col.names = TRUE, sep = "\t")
 } 
 
-makePieChart(f210i.res.clean, "RRM2mut", 0.05, f210i.dir)
-makePieChart(m323k.res.clean, "LCDmut", 0.05, m323k.dir) 
+makePieChart(f210i.res.clean, "RRM2mut", 0.01, f210i.dir)
+makePieChart(m323k.res.clean, "LCDmut", 0.01, m323k.dir) 
 
 # m323k.sig <- dplyr::filter(m323k.res.clean, FDR < 0.05) %>% select(one_of(c("groupID", "variantType", "FDR")) ) 
 # m323k.sig.by.group <- m323k.sig %>% group_by(groupID) %>% do(sample_n(.,1))  
