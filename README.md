@@ -1,8 +1,36 @@
-# Fratta et al, 2018
+# Fratta, Sivakumar, Humphrey, Lo, Ricketts, et al, 2018
+# **Endogenous TDP-43 mutant mice have novel gain of splicing function and ALS characteristics in vivo**
+# in press at EMBO Journal
+# 2018
+
+This GitHub repository contains all scripts to recreate the key bioinformatic analyses of the paper.
 
 all scripts written by Jack Humphrey, Kitty Lo, Prasanth Sivakumar and Shannon Edwards
 
-# Installation
+## Dependencies:
+
+Mac OS X or Linux
+
+bedtools v2.24.0
+bigWigSummary (http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/bigWigSummary)
+
+*R >= 3.3.2*
+- dplyr
+- ggplot2
+- stringr
+- biostrings
+- data.table
+- gridExtra
+- optparse
+- smoother (no longer available on CRAN for R 3.4.3, have to build from tarball - sorry! )
+- TTR
+
+*python 2.7.10*
+- pybedtools
+- argparse
+
+
+## Installation
 
 1. clone github repository to your computer
 1. unzip the data:
@@ -18,7 +46,7 @@ wget http://hgdownload.cse.ucsc.edu/goldenpath/mm10/phyloP60way/mm10.60way.phylo
 ```
 
 
-# Data processing
+## A note on data pre-processing
 
 All RNA-seq data was processed using the Plagnol lab RNA-seq pipeline (github.com/plagnollab/RNASeq_pipeline). 
 
@@ -30,13 +58,11 @@ Differential gene expression was computed with DESeq2.
 
 Differential splicing was computed with SGSeq.
 
-DESeq2 and SGSeq outputs saved in `/data`
+All iCLIP data was downloaded from iCOUNT in low FDR clusters.
 
-# Scripts 
+## Analysis scripts used in the paper:
 
-### Figure 5
-
-####5A,B) RNA maps 	
+###  - 5A,B) RNA maps 	
 
 -  `RNA_maps/whole_intron_cluster_coverage.py`	
 -  `RNA_maps/plot_whole_intron_coverage.R`
@@ -54,7 +80,7 @@ sh create_RNAmaps.sh
 ```
 
 
-####5C) conservation
+### 5C) conservation
 - `conservation/conservation.R`
 
 Calculates per-exon conservation score for groups of exons.
@@ -64,16 +90,16 @@ bigWigSummary must be downloaded from http://hgdownload.soe.ucsc.edu/admin/exe/m
 Reproduce figure 5C):
 
 ```
-cd conservation
+cd conservation/
 Rscript conservation.R
 ```
 
-####5D) differential expression 
+### 5D) Differential expression 
 - `differential_expression/skiptic_cryptic_expression.R`
 
 Running this script compares the DESeq2 differential gene expression results with the lists of genes that contain extreme splicing events.
 
-####5E) functional prediction
+### 5E) functional prediction
 - `NMD_prediction/NMD_prediction.R`
 - `NMD_prediction/bring_everything_together.R`
 
@@ -105,25 +131,4 @@ Takes the SGSeq differential splicing results file and plots the mean reads that
 
 This needs explaining.
 
-## dependencies:
-
-Mac OS X or Linux
-
-bedtools v2.24.0
-bigWigSummary (http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/bigWigSummary)
-
-*R >= 3.3.2*
-- dplyr
-- ggplot2
-- stringr
-- biostrings
-- data.table
-- gridExtra
-- optparse
-- smoother (no longer available on CRAN for R 3.4.3, have to build from tarball - sorry! )
-- TTR
-
-*python 2.7.10*
-- pybedtools
-- argparse
 
