@@ -1,7 +1,7 @@
-# Fratta, Sivakumar, Humphrey, Lo, Ricketts, et al, 2018
-## *Endogenous TDP-43 mutant mice have novel gain of splicing function and ALS characteristics in vivo*
-## in press at EMBO Journal
-## 2018
+#### Fratta, Sivakumar, Humphrey, Lo, Ricketts, et al, 2018
+#### *Endogenous TDP-43 mutant mice have novel gain of splicing function and ALS characteristics in vivo*
+#### in press at EMBO Journal
+#### 2018
 
 This GitHub repository contains all scripts to recreate the key bioinformatic analyses of the paper.
 
