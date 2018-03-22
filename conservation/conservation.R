@@ -32,7 +32,6 @@ bed.names <- c(
 species <- "mouse"
 code <- "extreme_splicing"
 outFolder <- "results/"
-#outFolder <- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K/cryptic_skiptic/"
 graph_title <- "F210I and M323K extreme splicing \nexon conservation (PhyloP 60 Way)"
 
 
@@ -49,11 +48,11 @@ if (! file.exists(conservation.outFolder)) dir.create(conservation.outFolder)
 
 # make sure phyloP bigwig exists - if not then download it!
 
-phyloP.bw <- "../data/conservation/mm10.60way.phyloP60way.bw"
+phyloP.bw <- "../mm10.60way.phyloP60way.bw"
 
 if( ! file.exists(phyloP.bw) ){
-	message("downloading phyloP bigwig - 5.5GB!")
-	system( "wget http://hgdownload.cse.ucsc.edu/goldenpath/mm10/phyloP60way/mm10.60way.phyloP60way.bw" )
+	message("downloading phyloP bigwig not found! download it to root folder of repository")
+	message( "wget http://hgdownload.cse.ucsc.edu/goldenpath/mm10/phyloP60way/mm10.60way.phyloP60way.bw " )
 }
 
 
