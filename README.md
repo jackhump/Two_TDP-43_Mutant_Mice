@@ -1,7 +1,7 @@
 # Fratta, Sivakumar, Humphrey, Lo, Ricketts, et al, 2018
-# **Endogenous TDP-43 mutant mice have novel gain of splicing function and ALS characteristics in vivo**
-# in press at EMBO Journal
-# 2018
+## *Endogenous TDP-43 mutant mice have novel gain of splicing function and ALS characteristics in vivo*
+## in press at EMBO Journal
+## 2018
 
 This GitHub repository contains all scripts to recreate the key bioinformatic analyses of the paper.
 
@@ -12,6 +12,7 @@ all scripts written by Jack Humphrey, Kitty Lo, Prasanth Sivakumar and Shannon E
 Mac OS X or Linux
 
 bedtools v2.24.0
+
 bigWigSummary (http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/bigWigSummary)
 
 *R >= 3.3.2*
