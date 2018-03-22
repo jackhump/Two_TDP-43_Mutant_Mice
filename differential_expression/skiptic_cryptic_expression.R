@@ -2,16 +2,31 @@ library(ggplot2)
 library(stringr)
 library(dplyr)
 library(data.table)
+library(gridExtra)
+iFolder <- "../data/"
 
-iFolder <- "/Users/Jack/google_drive/TDP_paper/"
-F210Ires <- paste0(iFolder, "differential_expression/deseq_F210I_embryo_June_2016_differential_expression.tab")
-M323Kres <- paste0(iFolder, "differential_expression/deseq_M323K_adult_differential_expression.tab" )
+#------- input files
+
+F210Ires <- paste0(iFolder, "DESeq2/deseq_F210I_embryo_June_2016_differential_expression.tab")
+M323Kres <- paste0(iFolder, "DESeq2/deseq_M323K_adult_differential_expression.tab" )
+
+# unzip input files
+
+if( ! file.exists(F210Ires) ){
+	system( paste0( "gunzip ", F210Ires,".gz" ) )
+	system( paste0( "gunzip ", M323Kres, ".gz" ) )
+}
+
+
 crypticExons <- paste0(iFolder,"cryptics.bed")
 skipticExons <- paste0(iFolder,"skiptics.bed")
-F210I_included <- paste0(iFolder, "intron_annotation/", "F210I_embryonic_brain_flank0_se_included.bed")
-F210I_skipped <- paste0(iFolder, "intron_annotation/", "F210I_embryonic_brain_flank0_se_skipped.bed" )
-M323K_included <- paste0(iFolder, "intron_annotation/", "M323K_adult_brain_flank0_se_included.bed" )
-M323K_skipped <-  paste0(iFolder, "intron_annotation/", "M323K_adult_brain_flank0_se_skipped.bed")
+
+F210I_included <- paste0(iFolder, "RNAmaps/", "F210I_embryonic_brain_flank0_se_included.bed")
+F210I_skipped <- paste0(iFolder, "RNAmaps/", "F210I_embryonic_brain_flank0_se_skipped.bed" )
+M323K_included <- paste0(iFolder, "RNAmaps/", "M323K_adult_brain_flank0_se_included.bed" )
+M323K_skipped <-  paste0(iFolder, "RNAmaps/", "M323K_adult_brain_flank0_se_skipped.bed")
+
+#------ functions
 
 prepareAllAnnotatedComparison <- function(deseqRes, exonList, exonCode, genotypeCode){
   res <- as.data.frame(fread(deseqRes)) 
@@ -232,7 +247,11 @@ combineAllPlot <- function(annotated, spliced, cryptic, genotypeCode, exon_codes
 }
 
 
+#-------- create results
+
 p_list <- list()
+
+
 # F210I
 annotatedComparison <- prepareAllAnnotatedComparison( deseqRes = F210Ires, exonList = crypticExons, genotypeCode = "F210I", exonCode = "cryptics" )
 p_list[[1]] <- makeProportionPlot(annotated = annotatedComparison[[1]], cryptic = annotatedComparison[[2]], genotypeCode = "F210I",exonCode = "cryptics",controlCode = "annotated")
@@ -249,16 +268,11 @@ p_list[[4]] <- makeProportionPlot(annotated = splicedComparison[[1]], cryptic = 
 p_list[[6]] <- combineAllPlot(annotated = annotatedComparison[[1]], spliced = splicedComparison[[1]], cryptic = splicedComparison[[2]], genotypeCode = "LCDmut gene expression", exon_codes = c("no cassettes", "cassettes", "extreme") )
 
 
-pdf(paste0(iFolder, "/differential_expression/", "F210I_differential_expression_plot.pdf"))
+pdf( "F210I_differential_expression_plot.pdf")
 grid.arrange(p_list[[1]], p_list[[2]], ncol = 1)
 dev.off()
 
-pdf( paste0(iFolder, "/differential_expression/", "M323K_differential_expression_plot.pdf"))
+pdf( "M323K_differential_expression_plot.pdf")
 grid.arrange(p_list[[3]], p_list[[4]], ncol = 1)
 dev.off()
 
-# for combining with NMD prediction plots:
-pdf( paste0(iFolder, "/differential_expression/", "extreme_differential_expression_NMD_prediction.pdf"))
-grid.arrange(p_list[[6]], p2)
-grid.arrange(p_list[[5]], p1)
-dev.off()

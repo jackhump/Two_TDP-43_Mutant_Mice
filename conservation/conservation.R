@@ -9,59 +9,20 @@ library(stringr)
 
 options(echo = TRUE)
 
-bigWigSummary <- "/SAN/vyplab/HuRNASeq/UCSC_tools/bigWigSummary"
-
-# compare the per-exon mean conservation score for a group of exons to the scores of all protein-coding exons in the genome.
-
-# skipped and included exons discovered by SGSeq
-
-# to do this read in GENCODE mouse GTF 
-# write out all exons of all protein coding transcript of all protein coding genes in BED format.
-# do in Python!
-
-
-
-# bed.files.list <- c(
-#   "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K/all_mouse_exons_merged.bed",
-# "/SAN/vyplab/IoN_RNAseq/Kitty/F210I/sgseq/f210i/F210I_se_included.bed",
-# "/SAN/vyplab/IoN_RNAseq/Kitty/F210I/sgseq/f210i/F210I_se_skipped.bed",
-# "/SAN/vyplab/IoN_RNAseq/Kitty/M323K/sgseq/M323K_adult_brain_se_included.bed",
-# "/SAN/vyplab/IoN_RNAseq/Kitty/M323K/sgseq/M323K_adult_brain_se_skipped.bed" 
-#   )
-
-
-
-# for(i in bed.files.list){
-#   if( !file.exists(i) ){
-#     stop( paste0(i, " doesn't exist"))
-#   }
-
-# }
-
-
-
-# bed.names <- c("All annotated exons",
-#             "F210I included",
-#             "F210I skipped",
-#             "M323K included",
-#             "M323K skipped" )
-
-# species <- "mouse"
-# code <- "F210I_M323K"
-# outFolder <- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K"
-# graph_title <- "F210I and M323K exon conservation (PhyloP 60 Way)"
-
+# check bigWigSummary is in the $PATH
+if( Sys.which("bigWigSummary") == "" ){
+	stop("bigWigSummary is not on your PATH")
+}
 
 
 #############################
 # just the cryptic (F210I) and skiptics (M323K)
 
 bed.files.list <- c(
- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K/all_mouse_exons_merged_1000_random.bed",
- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K/cryptic_skiptic/cryptics_nohead.bed",
- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K/cryptic_skiptic/skiptics_nohead.bed"
-  )
-
+	"../data/conservation/all_mouse_exons_merged_1000_random.bed",
+	"../data/cryptics.bed",
+	"../data/skiptics.bed"
+)
 bed.names <- c(
   "All annotated exons",
   "F210I extreme",
@@ -70,48 +31,62 @@ bed.names <- c(
 
 species <- "mouse"
 code <- "extreme_splicing"
-outFolder <- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K/cryptic_skiptic/"
+outFolder <- "results/"
+#outFolder <- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/F210I_M323K/cryptic_skiptic/"
 graph_title <- "F210I and M323K extreme splicing \nexon conservation (PhyloP 60 Way)"
 
 
+conservation.outFolder <- outFolder
+
+#conservation.outFolder <- paste0(outFolder,"/conservation/")
 
 
-conservation.outFolder <- paste0(outFolder,"/conservation/")
+# create outFolder
+
 if (! file.exists(conservation.outFolder)) dir.create(conservation.outFolder)
 
 
 
-if(species == "mouse"){
-  phyloP.bw <- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/splice_junction_detection/extended_hunting/reference/phyloP/mm10.60way.phyloP60way.bw"
+# make sure phyloP bigwig exists - if not then download it!
+
+phyloP.bw <- "../data/conservation/mm10.60way.phyloP60way.bw"
+
+if( ! file.exists(phyloP.bw) ){
+	message("downloading phyloP bigwig - 5.5GB!")
+	system( "wget http://hgdownload.cse.ucsc.edu/goldenpath/mm10/phyloP60way/mm10.60way.phyloP60way.bw" )
 }
-if(species == "human"){
-  phyloP.bw <- "/cluster/project8/vyp/Humphrey_RNASeq_brain/jack_git/Humphrey_RNASeq_brain/splice_junction_detection/extended_hunting/reference/phyloP/hg38.phyloP100way.bw"
-}
 
 
 
-
-# PhyloP conservation!
+message("PhyloP conservation!")
 # use multiple PhyloP builds
 
 exon.conservation <- list()
 for(i in 1:length(bed.names)){
 	bed.out <- bed.files.list[i]
 	conservation.tmp.out <- paste0(conservation.outFolder,"/temp.txt")
-  cmd <- paste0("cat ",bed.out," | while read chr start end name exonID strand; do ",bigWigSummary, " ", phyloP.bw, " $chr $start $end 1; done  2>&1 | awk \' $0 ~ \"data\"{print \"NA\"}$0 !~ \"data\" {print $0}\' | sed \'/^$/d\'", " > ", conservation.tmp.out)
+  	cmd <- paste0(
+		"cat ",
+		bed.out,
+		" | while read chr start end name exonID strand; do ",
+		"bigWigSummary ",
+		phyloP.bw, 
+		" $chr $start $end 1; done  2>&1 | awk \' $0 ~ \"data\"{print \"NA\"}$0 !~ \"data\" {print $0}\' | sed \'/^$/d\'",
+		" > ", 
+		conservation.tmp.out
+	)
 	system(cmd)
-  conservation <- fread( conservation.tmp.out )
+ 	conservation <- fread( conservation.tmp.out )
   	names(conservation)[1] <- "phyloP.score"
 
 	conservation$exon.type <- bed.names[i]
 
 	conservation.out <- paste0(bed.names[i],".conservation")
 
-  # read in bed file to annotate the conservation scores
+  	# read in bed file to annotate the conservation scores
+	d <- as.data.frame(fread(bed.files.list[i]))
 
-  d <- as.data.frame(fread(bed.files.list[i]))
-
-  conservation <- cbind( conservation,d)
+  	conservation <- cbind( conservation,d)
 
 
 	assign(conservation.out,conservation)
@@ -134,7 +109,7 @@ res$pvalue <- ""
 for(i in 2:3){
   control <- subset( exon.conservation.merge,  exon.type == res$exon.type[1] )$phyloP.score
   case <-  subset( exon.conservation.merge,  exon.type == res$exon.type[i] )$phyloP.score
-  res$p.value[i] <- t.test( control, case)$p.value
+  res$pvalue[i] <- t.test( control, case)$p.value
 }
 
 

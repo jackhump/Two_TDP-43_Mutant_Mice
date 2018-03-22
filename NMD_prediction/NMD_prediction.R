@@ -1,5 +1,5 @@
 # NMD prediction 
-
+# Jack Humphrey 2017
 # takes as input lists of exon as Bed files
 
 # exons are either skipped or included
